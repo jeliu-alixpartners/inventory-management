@@ -1,82 +1,178 @@
 <script setup>
-import { useRoute } from 'vue-router'
-import { useI18n } from '../composables/useI18n'
-import LanguageSwitcher from './LanguageSwitcher.vue'
-import ProfileMenu from './ProfileMenu.vue'
+import { useRoute } from "vue-router";
+import { useI18n } from "../composables/useI18n";
+import LanguageSwitcher from "./LanguageSwitcher.vue";
+import ProfileMenu from "./ProfileMenu.vue";
 
-const route = useRoute()
-const { t } = useI18n()
-const emit = defineEmits(['show-profile-details', 'show-tasks'])
+const route = useRoute();
+const { t } = useI18n();
+const emit = defineEmits(["show-profile-details", "show-tasks"]);
 
 const isActive = (path) => {
-  if (path === '/') return route.path === '/'
-  return route.path.startsWith(path)
-}
+  if (path === "/") return route.path === "/";
+  return route.path.startsWith(path);
+};
 </script>
 
 <template>
   <div class="sidebar">
     <div class="sidebar-brand">
-      <h2 class="brand-name">{{ t('nav.companyName') }}</h2>
-      <p class="brand-subtitle">{{ t('nav.subtitle') }}</p>
+      <h2 class="brand-name">{{ t("nav.companyName") }}</h2>
+      <p class="brand-subtitle">{{ t("nav.subtitle") }}</p>
     </div>
     <div class="sidebar-divider"></div>
 
     <nav class="sidebar-nav">
       <router-link class="nav-link" :class="{ active: isActive('/') }" to="/">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg
+          viewBox="0 0 24 24"
+          width="16"
+          height="16"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
           <path d="M3 3h7v7H3zM13 3h7v7h-7zM3 13h7v7H3zM13 13h7v7h-7z" />
         </svg>
-        <span>{{ t('nav.overview') }}</span>
+        <span>{{ t("nav.overview") }}</span>
       </router-link>
 
-      <router-link class="nav-link" :class="{ active: isActive('/inventory') }" to="/inventory">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M20 7L12 3L4 7M20 7v10l-8 4M20 7l-8 4M4 7v10l8 4M4 7l8 4M12 11v10" />
+      <router-link
+        class="nav-link"
+        :class="{ active: isActive('/inventory') }"
+        to="/inventory"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          width="16"
+          height="16"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path
+            d="M20 7L12 3L4 7M20 7v10l-8 4M20 7l-8 4M4 7v10l8 4M4 7l8 4M12 11v10"
+          />
         </svg>
-        <span>{{ t('nav.inventory') }}</span>
+        <span>{{ t("nav.inventory") }}</span>
       </router-link>
 
-      <router-link class="nav-link" :class="{ active: isActive('/orders') }" to="/orders">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9h6m-6 4h6m-6-8h6" />
+      <router-link
+        class="nav-link"
+        :class="{ active: isActive('/orders') }"
+        to="/orders"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          width="16"
+          height="16"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path
+            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9h6m-6 4h6m-6-8h6"
+          />
         </svg>
-        <span>{{ t('nav.orders') }}</span>
+        <span>{{ t("nav.orders") }}</span>
       </router-link>
 
-      <router-link class="nav-link" :class="{ active: isActive('/spending') }" to="/spending">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <router-link
+        class="nav-link"
+        :class="{ active: isActive('/spending') }"
+        to="/spending"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          width="16"
+          height="16"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
           <path d="M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
         </svg>
-        <span>{{ t('nav.finance') }}</span>
+        <span>{{ t("nav.finance") }}</span>
       </router-link>
 
-      <router-link class="nav-link" :class="{ active: isActive('/demand') }" to="/demand">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <router-link
+        class="nav-link"
+        :class="{ active: isActive('/demand') }"
+        to="/demand"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          width="16"
+          height="16"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
           <path d="M23 6l-9.5 9.5-5-5L1 18M17 6h6v6" />
         </svg>
-        <span>{{ t('nav.demandForecast') }}</span>
+        <span>{{ t("nav.demandForecast") }}</span>
       </router-link>
 
-      <router-link class="nav-link" :class="{ active: isActive('/reports') }" to="/reports">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <router-link
+        class="nav-link"
+        :class="{ active: isActive('/reports') }"
+        to="/reports"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          width="16"
+          height="16"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
           <path d="M12 20V10M18 20V4M6 20v-6" />
         </svg>
         <span>Reports</span>
       </router-link>
 
-      <router-link class="nav-link" :class="{ active: isActive('/restocking') }" to="/restocking">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+      <router-link
+        class="nav-link"
+        :class="{ active: isActive('/restocking') }"
+        to="/restocking"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          width="16"
+          height="16"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path
+            d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+          />
         </svg>
-        <span>{{ t('nav.restocking') }}</span>
+        <span>{{ t("nav.restocking") }}</span>
       </router-link>
     </nav>
 
     <div class="sidebar-divider"></div>
     <div class="sidebar-footer">
       <LanguageSwitcher />
-      <ProfileMenu @show-profile-details="emit('show-profile-details')" @show-tasks="emit('show-tasks')" />
+      <ProfileMenu
+        @show-profile-details="emit('show-profile-details')"
+        @show-tasks="emit('show-tasks')"
+      />
     </div>
   </div>
 </template>

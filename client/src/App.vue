@@ -28,96 +28,89 @@
 </template>
 
 <script>
-import { ref, onMounted, computed } from 'vue'
-import { api } from './api'
-import { useAuth } from './composables/useAuth'
-import { useI18n } from './composables/useI18n'
-import FilterBar from './components/FilterBar.vue'
-import AppSidebar from './components/AppSidebar.vue'
-import ProfileDetailsModal from './components/ProfileDetailsModal.vue'
-import TasksModal from './components/TasksModal.vue'
+import { ref, onMounted, computed } from "vue";
+import { api } from "./api";
+import { useAuth } from "./composables/useAuth";
+import { useI18n } from "./composables/useI18n";
+import FilterBar from "./components/FilterBar.vue";
+import AppSidebar from "./components/AppSidebar.vue";
+import ProfileDetailsModal from "./components/ProfileDetailsModal.vue";
+import TasksModal from "./components/TasksModal.vue";
 
 export default {
-  name: 'App',
+  name: "App",
   components: {
     FilterBar,
     AppSidebar,
     ProfileDetailsModal,
-    TasksModal
+    TasksModal,
   },
   setup() {
-    const { currentUser } = useAuth()
-    const { t } = useI18n()
-    const showProfileDetails = ref(false)
-    const showTasks = ref(false)
-    const apiTasks = ref([])
+    const { currentUser } = useAuth();
+    const { t } = useI18n();
+    const showProfileDetails = ref(false);
+    const showTasks = ref(false);
+    const apiTasks = ref([]);
 
-    // Merge mock tasks from currentUser with API tasks
     const tasks = computed(() => {
-      return [...currentUser.value.tasks, ...apiTasks.value]
-    })
+      return [...currentUser.value.tasks, ...apiTasks.value];
+    });
 
     const loadTasks = async () => {
       try {
-        apiTasks.value = await api.getTasks()
+        apiTasks.value = await api.getTasks();
       } catch (err) {
-        console.error('Failed to load tasks:', err)
+        console.error("Failed to load tasks:", err);
       }
-    }
+    };
 
     const addTask = async (taskData) => {
       try {
-        const newTask = await api.createTask(taskData)
-        // Add new task to the beginning of the array
-        apiTasks.value.unshift(newTask)
+        const newTask = await api.createTask(taskData);
+        apiTasks.value.unshift(newTask);
       } catch (err) {
-        console.error('Failed to add task:', err)
+        console.error("Failed to add task:", err);
       }
-    }
+    };
 
     const deleteTask = async (taskId) => {
       try {
-        // Check if it's a mock task (from currentUser)
-        const isMockTask = currentUser.value.tasks.some(t => t.id === taskId)
-
+        const isMockTask = currentUser.value.tasks.some((t) => t.id === taskId);
         if (isMockTask) {
-          // Remove from mock tasks
-          const index = currentUser.value.tasks.findIndex(t => t.id === taskId)
+          const index = currentUser.value.tasks.findIndex(
+            (t) => t.id === taskId,
+          );
           if (index !== -1) {
-            currentUser.value.tasks.splice(index, 1)
+            currentUser.value.tasks.splice(index, 1);
           }
         } else {
-          // Remove from API tasks
-          await api.deleteTask(taskId)
-          apiTasks.value = apiTasks.value.filter(t => t.id !== taskId)
+          await api.deleteTask(taskId);
+          apiTasks.value = apiTasks.value.filter((t) => t.id !== taskId);
         }
       } catch (err) {
-        console.error('Failed to delete task:', err)
+        console.error("Failed to delete task:", err);
       }
-    }
+    };
 
     const toggleTask = async (taskId) => {
       try {
-        // Check if it's a mock task (from currentUser)
-        const mockTask = currentUser.value.tasks.find(t => t.id === taskId)
-
+        const mockTask = currentUser.value.tasks.find((t) => t.id === taskId);
         if (mockTask) {
-          // Toggle mock task status
-          mockTask.status = mockTask.status === 'pending' ? 'completed' : 'pending'
+          mockTask.status =
+            mockTask.status === "pending" ? "completed" : "pending";
         } else {
-          // Toggle API task
-          const updatedTask = await api.toggleTask(taskId)
-          const index = apiTasks.value.findIndex(t => t.id === taskId)
+          const updatedTask = await api.toggleTask(taskId);
+          const index = apiTasks.value.findIndex((t) => t.id === taskId);
           if (index !== -1) {
-            apiTasks.value[index] = updatedTask
+            apiTasks.value[index] = updatedTask;
           }
         }
       } catch (err) {
-        console.error('Failed to toggle task:', err)
+        console.error("Failed to toggle task:", err);
       }
-    }
+    };
 
-    onMounted(loadTasks)
+    onMounted(loadTasks);
 
     return {
       t,
@@ -126,10 +119,10 @@ export default {
       tasks,
       addTask,
       deleteTask,
-      toggleTask
-    }
-  }
-}
+      toggleTask,
+    };
+  },
+};
 </script>
 
 <style>
@@ -140,7 +133,16 @@ export default {
 }
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  font-family:
+    "Inter",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    sans-serif;
   background: #f8fafc;
   color: #1e293b;
   -webkit-font-smoothing: antialiased;
