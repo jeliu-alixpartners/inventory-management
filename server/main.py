@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List, Optional
 from pydantic import BaseModel
+from datetime import datetime, timedelta, timezone
 from mock_data import inventory_items, orders, demand_forecasts, backlog_items, spending_summary, monthly_spending, category_spending, recent_transactions, purchase_orders
 
 app = FastAPI(title="Factory Inventory Management System")
@@ -80,6 +81,7 @@ class Order(BaseModel):
     actual_delivery: Optional[str] = None
     warehouse: Optional[str] = None
     category: Optional[str] = None
+    source: Optional[str] = None
 
 class DemandForecast(BaseModel):
     id: str
@@ -89,6 +91,7 @@ class DemandForecast(BaseModel):
     forecasted_demand: int
     trend: str
     period: str
+    unit_cost: Optional[float] = None
 
 class BacklogItem(BaseModel):
     id: str
@@ -119,6 +122,16 @@ class CreatePurchaseOrderRequest(BaseModel):
     unit_cost: float
     expected_delivery_date: str
     notes: Optional[str] = None
+
+class OrderItemInput(BaseModel):
+    sku: str
+    name: str
+    quantity: int
+    unit_price: float
+
+class CreateOrderRequest(BaseModel):
+    items: List[OrderItemInput]
+    budget: float  # carried for auditability; algorithm runs on the frontend
 
 # API endpoints
 @app.get("/")
@@ -160,6 +173,46 @@ def get_order(order_id: str):
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
     return order
+
+@app.post("/api/orders", response_model=Order, status_code=201)
+def create_order(request: CreateOrderRequest):
+    """Create a new restocking order and append it to the in-memory orders list.
+    Designed for future Postgres migration: IDs and timestamps are generated
+    server-side; the in-memory list acts as a surrogate table.
+    """
+    now = datetime.now(timezone.utc)
+    expected_delivery = now + timedelta(days=14)
+
+    # Use max existing numeric ID + 1 for stable ordering
+    max_id = max((int(o["id"]) for o in orders), default=0)
+
+    # RST-{YYYY}-{N} sequence, counted separately from regular orders
+    rst_count = sum(1 for o in orders if o.get("source") == "restocking")
+    order_number = f"RST-{now.year}-{str(rst_count + 1).zfill(4)}"
+
+    items_as_dicts = [
+        {"sku": i.sku, "name": i.name, "quantity": i.quantity, "unit_price": i.unit_price}
+        for i in request.items
+    ]
+    # Recompute total server-side — don't trust the client's value
+    total_value = round(sum(i.unit_price * i.quantity for i in request.items), 2)
+
+    new_order = {
+        "id": str(max_id + 1),
+        "order_number": order_number,
+        "customer": "Internal Restocking",
+        "items": items_as_dicts,
+        "status": "Processing",
+        "order_date": now.strftime("%Y-%m-%dT%H:%M:%S"),
+        "expected_delivery": expected_delivery.strftime("%Y-%m-%dT%H:%M:%S"),
+        "total_value": total_value,
+        "actual_delivery": None,
+        "warehouse": None,
+        "category": None,
+        "source": "restocking",
+    }
+    orders.append(new_order)
+    return new_order
 
 @app.get("/api/demand", response_model=List[DemandForecast])
 def get_demand_forecasts():
