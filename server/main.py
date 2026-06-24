@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List, Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from datetime import datetime, timedelta, timezone
 from mock_data import inventory_items, orders, demand_forecasts, backlog_items, spending_summary, monthly_spending, category_spending, recent_transactions, purchase_orders
 
@@ -118,19 +118,19 @@ class PurchaseOrder(BaseModel):
 class CreatePurchaseOrderRequest(BaseModel):
     backlog_item_id: str
     supplier_name: str
-    quantity: int
-    unit_cost: float
+    quantity: int = Field(ge=1)
+    unit_cost: float = Field(gt=0)
     expected_delivery_date: str
     notes: Optional[str] = None
 
 class OrderItemInput(BaseModel):
     sku: str
     name: str
-    quantity: int
-    unit_price: float
+    quantity: int = Field(ge=1)
+    unit_price: float = Field(gt=0)
 
 class CreateOrderRequest(BaseModel):
-    items: List[OrderItemInput]
+    items: List[OrderItemInput] = Field(min_length=1)
     budget: float  # carried for auditability; algorithm runs on the frontend
 
 # API endpoints
@@ -180,6 +180,38 @@ def create_order(request: CreateOrderRequest):
     Designed for future Postgres migration: IDs and timestamps are generated
     server-side; the in-memory list acts as a surrogate table.
     """
+    # Validate inventory levels before committing — collect all violations first
+    # so the caller gets a complete error rather than a partial one.
+    insufficient = []
+    deductions = []  # (inventory_item_dict, qty) — applied only if all checks pass
+
+    for item in request.items:
+        inv = next((i for i in inventory_items if i["sku"] == item.sku), None)
+        if inv is None:
+            continue  # SKU not tracked in inventory; skip the check
+        if inv["quantity_on_hand"] < item.quantity:
+            insufficient.append({
+                "sku": item.sku,
+                "name": item.name,
+                "requested": item.quantity,
+                "available": inv["quantity_on_hand"],
+            })
+        else:
+            deductions.append((inv, item.quantity))
+
+    if insufficient:
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "message": "Insufficient inventory for one or more items",
+                "items": insufficient,
+            },
+        )
+
+    # All checks passed — deduct atomically so no other request can race in
+    for inv, qty in deductions:
+        inv["quantity_on_hand"] -= qty
+
     now = datetime.now(timezone.utc)
     expected_delivery = now + timedelta(days=14)
 
