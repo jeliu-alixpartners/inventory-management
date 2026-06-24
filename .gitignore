@@ -51,5 +51,8 @@ logs/
 # Playwright MCP artifacts
 .playwright-mcp/
 
+# Claude Code skills and local config
+.claude/
+
 # Environment variables
 .env

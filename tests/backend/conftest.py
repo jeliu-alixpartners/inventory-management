@@ -1,6 +1,7 @@
 """
 Pytest configuration and fixtures for backend API tests.
 """
+import copy
 import sys
 from pathlib import Path
 
@@ -12,6 +13,24 @@ server_path = Path(__file__).parent.parent.parent / "server"
 sys.path.insert(0, str(server_path))
 
 from main import app
+import mock_data
+
+
+@pytest.fixture(autouse=True)
+def reset_app_state():
+    """Restore shared in-memory state after every test.
+
+    POST /api/orders both appends to `orders` and deducts from
+    `inventory_items`.  Without this fixture, mutations from one test leak
+    into the next, causing non-deterministic failures.
+    """
+    saved_inventory = copy.deepcopy(mock_data.inventory_items)
+    saved_orders = copy.deepcopy(mock_data.orders)
+    yield
+    # In-place slice assignment keeps the same list object so all module-level
+    # references (main.py imports) remain valid.
+    mock_data.inventory_items[:] = saved_inventory
+    mock_data.orders[:] = saved_orders
 
 
 @pytest.fixture
